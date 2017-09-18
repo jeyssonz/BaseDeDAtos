@@ -14,7 +14,7 @@ import java.util.ArrayList;
 
 public class DatabaseHandler extends SQLiteOpenHelper {
     private SQLiteDatabase database;
-    private static final int DATABASE_VERSION = 1;
+    private static final int DATABASE_VERSION = 8;
     public static final String DATABASE_NAME = "Rubric.db";
 
     public DatabaseHandler(Context context) {
@@ -23,16 +23,18 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
     @Override
     public void onCreate(SQLiteDatabase db) {
-        db.execSQL("create table Estudiantes ( id INTEGER PRIMARY KEY AUTOINCREMENT, nombre VARCHAR , idcursos INTEGER);");
+        db.execSQL("create table Estudiantes ( id INTEGER PRIMARY KEY AUTOINCREMENT, nombre VARCHAR , codigo INTEGER, curso INTEGER);");
         db.execSQL("create table Cursos ( id INTEGER PRIMARY KEY AUTOINCREMENT, nombre VARCHAR);");
-        db.execSQL("create table Pivot_Estudiantes_Cursos ( id_curso INTEGER, id_estudiante INTEGER);");
+        db.execSQL("create table Rubricas ( id INTEGER PRIMARY KEY AUTOINCREMENT, nombre VARCHAR);");
+        db.execSQL("create table Rubrica ( id INTEGER PRIMARY KEY AUTOINCREMENT,categoria VARCHAR, peso VARCHAR, elementos VARCHAR, l1 INTEGER, l2 INTEGER, l3 INTEGER, l4 INTEGER, rubricaid INTEGER);");
     }
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
         db.execSQL("DROP TABLE IF EXISTS Estudiantes");
         db.execSQL("DROP TABLE IF EXISTS Cursos");
-        db.execSQL("DROP TABLE IF EXISTS Pivot_Estudiantes_Cursos");
+        db.execSQL("DROP TABLE IF EXISTS Rubricas");
+        db.execSQL("DROP TABLE IF EXISTS Rubrica");
         onCreate(db);
     }
 
@@ -43,12 +45,34 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         database.insert("Cursos", null, contentValues);
         database.close();
     }
-    public void insertEstudiante(String nombre, int id ) {
+    public void insertR(String nombre) {
         this.database = this.getReadableDatabase();
         ContentValues contentValues = new ContentValues();
         contentValues.put("nombre", nombre);
-        contentValues.put("id", id);
+        database.insert("Rubricas", null, contentValues);
+        database.close();
+    }
+    public void insertEstudiante(String nombre, int codigo, int idcurso) {
+        this.database = this.getReadableDatabase();
+        ContentValues contentValues = new ContentValues();
+        contentValues.put("nombre", nombre);
+        contentValues.put("codigo",codigo);
+        contentValues.put("curso", idcurso);
         database.insert("Estudiantes", null, contentValues);
+        database.close();
+    }
+    public void insertRubri(String categoria, String peso, String elementos, int l1, int l2, int l3, int l4 ,int rubri) {
+        this.database = this.getReadableDatabase();
+        ContentValues contentValues = new ContentValues();
+        contentValues.put("categoria",categoria);
+        contentValues.put("peso",peso);
+        contentValues.put("elementos",elementos);
+        contentValues.put("l1",l1);
+        contentValues.put("l2",l2);
+        contentValues.put("l3",l3);
+        contentValues.put("l4",l4);
+        contentValues.put("rubricaid",rubri);
+        database.insert("Rubrica", null, contentValues);
         database.close();
     }
     public ArrayList select(String table) {
@@ -59,6 +83,36 @@ public class DatabaseHandler extends SQLiteOpenHelper {
             for (int i = 0; i < cursor.getCount(); i++) {
                 cursor.moveToNext();
                 array.add(i, cursor.getString(1));
+            }
+        }
+        cursor.close();
+        database.close();
+        return array;
+    }
+    public ArrayList s(String table, int posicion) {
+        database = this.getReadableDatabase();
+        Cursor cursor = database.rawQuery("SELECT * FROM " + table + " WHERE curso = "+ posicion, null);
+        ArrayList array = new ArrayList();
+        if (cursor.getCount() > 0) {
+            for (int i = 0; i < cursor.getCount(); i++) {
+                cursor.moveToNext();
+                array.add(i, cursor.getString(1));
+            }
+        }
+        cursor.close();
+        database.close();
+        return array;
+    }
+    public ArrayList se(String table, int posicion) {
+        database = this.getReadableDatabase();
+        Cursor cursor = database.rawQuery("SELECT categoria,peso,elementos FROM " + table + " WHERE rubricaid = "+ posicion, null);
+        ArrayList array = new ArrayList();
+        if (cursor.getCount() > 0) {
+            for (int i = 0; i < cursor.getCount(); i++) {
+                cursor.moveToNext();
+                array.add(i, cursor.getString(1));
+                array.add(i, cursor.getString(2));
+                array.add(i, cursor.getString(0));//aaa
             }
         }
         cursor.close();
